@@ -1,0 +1,2 @@
+A small and configurable library that implements stream coding and decoding of CBOR format.
+Does not use dynamic memory allocation and is suitable for embedded systems using microcontrollers.
