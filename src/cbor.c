@@ -29,47 +29,53 @@
   #define CBOR_INTTYPE_16
 #endif
 
-#if   (defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && \
-       __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || \
-      (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN) || \
-      (defined(BYTE_ORDER) && defined(BIG_ENDIAN) && BYTE_ORDER == BIG_ENDIAN) || \
-      (defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)) || \
-      (defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)) || \
-      defined(__ARMEB__) || defined(__MIPSEB__) || defined(__s390__) || defined(__sparc__)
-
-#define CBOR_BIG_ENDIAN
-
-#elif (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
-       __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
-      (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN) || \
-      (defined(BYTE_ORDER) && defined(LITTLE_ENDIAN) && BYTE_ORDER == LITTLE_ENDIAN) || \
-      defined(_LITTLE_ENDIAN) || defined(__LITTLE_ENDIAN__) || defined(__ARMEL__) || \
-      defined(__MIPSEL__) || defined(__i386) || defined(__i386__) || defined(__x86_64) || \
-      defined(__x86_64__) || defined(__amd64)
-
-#define CBOR_LITTLE_ENDIAN
-
-#else
-  #error "unable to determine byte order!"
-#endif
-
-#if defined(__GNUC__)
-  #ifdef CBOR_LITTLE_ENDIAN
-    #define cbor_bswap16 __builtin_bswap16
-    #define cbor_bswap32 __builtin_bswap32
-    #define cbor_bswap64 __builtin_bswap64
-  #else
-    #define cbor_bswap16(x) (x)
-    #define cbor_bswap32(x) (x)
-    #define cbor_bswap64(x) (x)
-  #endif
-#elif defined(_MSC_VER)
+#ifdef _MSC_VER
   // MSVC, which implies Windows, which implies little-endian and sizeof(long) == 4
   #include <stdlib.h>
   #define cbor_bswap16 _byteswap_ushort
   #define cbor_bswap32 _byteswap_ulong
   #define cbor_bswap64 _byteswap_uint64
-#endif
+
+  #define inline __inline
+#else
+
+  #if   (defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && \
+         __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || \
+        (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && __BYTE_ORDER == __BIG_ENDIAN) || \
+        (defined(BYTE_ORDER) && defined(BIG_ENDIAN) && BYTE_ORDER == BIG_ENDIAN) || \
+        (defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)) || \
+        (defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)) || \
+        defined(__ARMEB__) || defined(__MIPSEB__) || defined(__s390__) || defined(__sparc__)
+
+  #define CBOR_BIG_ENDIAN
+
+  #elif (defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+         __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
+        (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && __BYTE_ORDER == __LITTLE_ENDIAN) || \
+        (defined(BYTE_ORDER) && defined(LITTLE_ENDIAN) && BYTE_ORDER == LITTLE_ENDIAN) || \
+        defined(_LITTLE_ENDIAN) || defined(__LITTLE_ENDIAN__) || defined(__ARMEL__) || \
+        defined(__MIPSEL__) || defined(__i386) || defined(__i386__) || defined(__x86_64) || \
+        defined(__x86_64__) || defined(__amd64)
+
+  #define CBOR_LITTLE_ENDIAN
+
+  #else
+    #error "unable to determine byte order!"
+  #endif
+
+  #if defined(__GNUC__)
+    #ifdef CBOR_LITTLE_ENDIAN
+      #define cbor_bswap16 __builtin_bswap16
+      #define cbor_bswap32 __builtin_bswap32
+      #define cbor_bswap64 __builtin_bswap64
+    #else
+      #define cbor_bswap16(x) (x)
+      #define cbor_bswap32(x) (x)
+      #define cbor_bswap64(x) (x)
+    #endif
+  #endif
+
+#endif // _MSC_VER
 
 enum sub_type
 {
@@ -250,7 +256,7 @@ static uint16_t encode_float16(uint32_t h)
 cbor_status cbenc_float16(cbenc_ctx *ctx, float val)
 {
   cbor_status cs = cbor_ok;
-  union { float f; uint32_t bits; } v = { .f = val };
+  union { float f; uint32_t bits; } v = { val };
 
   if(v.bits == 0) { return cbenc_uint(ctx, 0); }
 
@@ -264,7 +270,7 @@ cbor_status cbenc_float16(cbenc_ctx *ctx, float val)
 cbor_status cbenc_float32(cbenc_ctx *ctx, float val)
 {
   cbor_status cs = cbor_ok;
-  union { float f; uint32_t u; } v = { .f = val };
+  union { float f; uint32_t u; } v = { val };
 
   if(v.u == 0) { return cbenc_uint(ctx, 0); }
 
@@ -281,7 +287,7 @@ cbor_status cbenc_float32(cbenc_ctx *ctx, float val)
 cbor_status cbenc_float64(cbenc_ctx *ctx, double val)
 {
   cbor_status cs = cbor_ok;
-  union { double f; uint64_t u; } v = { .f = val };
+  union { double f; uint64_t u; } v = { val };
 
   if(v.u == 0) { return cbenc_uint(ctx, 0); }
 
