@@ -90,10 +90,10 @@ enum sub_type
 
 #ifdef CBOR_ENABLE_ENCODER_SUPPORT
 
-static inline cbor_uint encbuf_datalen(cbenc_ctx *ctx) { return ctx->end - ctx->buf;              }
-static inline cbor_uint encbuf_avail(cbenc_ctx *ctx)   { return ctx->bufsz - encbuf_datalen(ctx); }
+static inline cbor_uint encbuf_datalen(cbenc_ctx_t *ctx) { return ctx->end - ctx->buf; }
+static inline cbor_uint encbuf_avail(cbenc_ctx_t *ctx) { return ctx->bufsz - encbuf_datalen(ctx); }
 
-static inline cbor_status encbuf_grow(cbenc_ctx *ctx, cbor_uint size)
+static inline cbor_status encbuf_grow(cbenc_ctx_t *ctx, cbor_uint size)
 {
   cbor_status cs = cbor_ok;
 
@@ -108,7 +108,7 @@ static inline cbor_status encbuf_grow(cbenc_ctx *ctx, cbor_uint size)
   return cs;
 }
 
-static inline cbor_status cbenc_header(cbenc_ctx *ctx, uint8_t type, cbor_uint grow)
+static inline cbor_status cbenc_header(cbenc_ctx_t *ctx, uint8_t type, cbor_uint grow)
 {
   cbor_status cs = cbor_ok;
 
@@ -118,7 +118,7 @@ static inline cbor_status cbenc_header(cbenc_ctx *ctx, uint8_t type, cbor_uint g
   return cs;
 }
 
-static inline cbor_status cbenc_bytes(cbenc_ctx *ctx, uint8_t type, const void *data, cbor_uint sz)
+static inline cbor_status cbenc_bytes(cbenc_ctx_t *ctx, uint8_t type, const void *data, cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
 
@@ -130,9 +130,9 @@ static inline cbor_status cbenc_bytes(cbenc_ctx *ctx, uint8_t type, const void *
   return cbenc_swrite(ctx, data, sz);
 }
 
-cbor_status cbenc_begin(cbenc_ctx *ctx) { ctx->end = ctx->buf; return cbor_ok; }
+cbor_status cbenc_begin(cbenc_ctx_t *ctx) { ctx->end = ctx->buf; return cbor_ok; }
 
-cbor_status cbenc_end(cbenc_ctx *ctx)
+cbor_status cbenc_end(cbenc_ctx_t *ctx)
 {
   cbor_status cs = cbor_ok;
   cbor_uint len = encbuf_datalen(ctx);
@@ -145,7 +145,7 @@ cbor_status cbenc_end(cbenc_ctx *ctx)
   return cs;
 }
 
-cbor_status cbenc_uint(cbenc_ctx *ctx, cbor_uint val)
+cbor_status cbenc_uint(cbenc_ctx_t *ctx, cbor_uint val)
 {
   cbor_status cs = cbor_ok;
 
@@ -194,7 +194,7 @@ cbor_status cbenc_uint(cbenc_ctx *ctx, cbor_uint val)
   return cs;
 }
 
-cbor_status cbenc_int(cbenc_ctx *ctx, cbor_int val)
+cbor_status cbenc_int(cbenc_ctx_t *ctx, cbor_int val)
 {
   cbor_status cs = cbor_ok;
 
@@ -253,7 +253,7 @@ static uint16_t encode_float16(uint32_t h)
   return bits;
 }
 
-cbor_status cbenc_float16(cbenc_ctx *ctx, float val)
+cbor_status cbenc_float16(cbenc_ctx_t *ctx, float val)
 {
   cbor_status cs = cbor_ok;
   union { float f; uint32_t bits; } v = { val };
@@ -267,7 +267,7 @@ cbor_status cbenc_float16(cbenc_ctx *ctx, float val)
   return cs;
 }
 
-cbor_status cbenc_float32(cbenc_ctx *ctx, float val)
+cbor_status cbenc_float32(cbenc_ctx_t *ctx, float val)
 {
   cbor_status cs = cbor_ok;
   union { float f; uint32_t u; } v = { val };
@@ -284,7 +284,7 @@ cbor_status cbenc_float32(cbenc_ctx *ctx, float val)
 
 #ifdef CBOR_ENABLE_FLOAT64_SUPPORT
 
-cbor_status cbenc_float64(cbenc_ctx *ctx, double val)
+cbor_status cbenc_float64(cbenc_ctx_t *ctx, double val)
 {
   cbor_status cs = cbor_ok;
   union { double f; uint64_t u; } v = { val };
@@ -299,22 +299,22 @@ cbor_status cbenc_float64(cbenc_ctx *ctx, double val)
 
 #endif // CBOR_ENABLE_FLOAT64_SUPPORT
 
-cbor_status cbenc_simple(cbenc_ctx *ctx, cbor_simple val)
+cbor_status cbenc_simple(cbenc_ctx_t *ctx, cbor_simple val)
 {
   return cbenc_header(ctx, cbor_tsimple | val, 0);
 }
 
-cbor_status cbenc_bytestr_begin(cbenc_ctx *ctx)
+cbor_status cbenc_bytestr_begin(cbenc_ctx_t *ctx)
 {
   return cbenc_header(ctx, cbor_tbytestr | st_varbrk, 0);
 }
 
-cbor_status cbenc_bytestr(cbenc_ctx *ctx, const void *data, cbor_uint sz)
+cbor_status cbenc_bytestr(cbenc_ctx_t *ctx, const void *data, cbor_uint sz)
 {
   return cbenc_bytes(ctx, cbor_tbytestr, data, sz);
 }
 
-cbor_status cbenc_textstr_begin(cbenc_ctx *ctx)
+cbor_status cbenc_textstr_begin(cbenc_ctx_t *ctx)
 {
   return cbenc_header(ctx, cbor_ttextstr | st_varbrk, 0);
 }
@@ -358,7 +358,7 @@ static const char *utf8_truncate(const uint8_t *s, cbor_uint char_limit)
 
 #endif // CBOR_ENABLE_UTF8_SUPPORT
 
-cbor_status cbenc_textstr(cbenc_ctx *ctx, const char *data, cbor_uint sz)
+cbor_status cbenc_textstr(cbenc_ctx_t *ctx, const char *data, cbor_uint sz)
 {
 #ifdef CBOR_ENABLE_UTF8_SUPPORT
   const char *end = utf8_truncate((uint8_t*)data, sz);
@@ -368,7 +368,7 @@ cbor_status cbenc_textstr(cbenc_ctx *ctx, const char *data, cbor_uint sz)
 #endif
 }
 
-cbor_status cbenc_cstring(cbenc_ctx *ctx, const char *data)
+cbor_status cbenc_cstring(cbenc_ctx_t *ctx, const char *data)
 {
   cbor_status cs = cbor_ok;
 
@@ -408,7 +408,7 @@ cbor_status cbenc_cstring(cbenc_ctx *ctx, const char *data)
 #endif
 }
 
-cbor_status cbenc_bytestr_begin_sz(cbenc_ctx *ctx, cbor_uint sz)
+cbor_status cbenc_bytestr_begin_sz(cbenc_ctx_t *ctx, cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
 
@@ -418,7 +418,7 @@ cbor_status cbenc_bytestr_begin_sz(cbenc_ctx *ctx, cbor_uint sz)
   return cs;
 }
 
-cbor_status cbenc_textstr_begin_sz(cbenc_ctx *ctx, cbor_uint sz)
+cbor_status cbenc_textstr_begin_sz(cbenc_ctx_t *ctx, cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
 
@@ -428,7 +428,7 @@ cbor_status cbenc_textstr_begin_sz(cbenc_ctx *ctx, cbor_uint sz)
   return cs;
 }
 
-cbor_status cbenc_swrite(cbenc_ctx *ctx, const void *data, cbor_uint sz)
+cbor_status cbenc_swrite(cbenc_ctx_t *ctx, const void *data, cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
   cbor_uint avail;
@@ -451,12 +451,12 @@ cbor_status cbenc_swrite(cbenc_ctx *ctx, const void *data, cbor_uint sz)
   return ctx->write(p, sz, ctx->usrdata);
 }
 
-cbor_status cbenc_array_begin(cbenc_ctx *ctx)
+cbor_status cbenc_array_begin(cbenc_ctx_t *ctx)
 {
   return cbenc_header(ctx, cbor_tarray | st_varbrk, 0);
 }
 
-cbor_status cbenc_array(cbenc_ctx *ctx, cbor_uint sz)
+cbor_status cbenc_array(cbenc_ctx_t *ctx, cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
 
@@ -466,12 +466,12 @@ cbor_status cbenc_array(cbenc_ctx *ctx, cbor_uint sz)
   return cs;
 }
 
-cbor_status cbenc_map_begin(cbenc_ctx *ctx)
+cbor_status cbenc_map_begin(cbenc_ctx_t *ctx)
 {
   return cbenc_header(ctx, cbor_tmap | st_varbrk, 0);
 }
 
-cbor_status cbenc_map(cbenc_ctx *ctx, cbor_uint sz)
+cbor_status cbenc_map(cbenc_ctx_t *ctx, cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
 
@@ -481,12 +481,12 @@ cbor_status cbenc_map(cbenc_ctx *ctx, cbor_uint sz)
   return cs;
 }
 
-cbor_status cbenc_break(cbenc_ctx *ctx)
+cbor_status cbenc_break(cbenc_ctx_t *ctx)
 {
   return cbenc_header(ctx, cbor_tsimple | st_varbrk, 0);
 }
 
-cbor_status cbenc_tag(cbenc_ctx *ctx, cbor_uint tag)
+cbor_status cbenc_tag(cbenc_ctx_t *ctx, cbor_uint tag)
 {
   cbor_status cs = cbor_ok;
 
@@ -501,7 +501,7 @@ cbor_status cbenc_tag(cbenc_ctx *ctx, cbor_uint tag)
 
 #ifdef CBOR_ENABLE_DECODER_SUPPORT
 
-static cbor_status cbdec_uint(cbdec_ctx *ctx, uint8_t s_type)
+static cbor_status cbdec_uint(cbdec_ctx_t *ctx, uint8_t s_type)
 {
   cbor_status cs = cbor_ok;
 
@@ -540,7 +540,7 @@ static cbor_status cbdec_uint(cbdec_ctx *ctx, uint8_t s_type)
   return cs;
 }
 
-static inline cbor_status cbdec_int(cbdec_ctx *ctx, uint8_t s_type)
+static inline cbor_status cbdec_int(cbdec_ctx_t *ctx, uint8_t s_type)
 {
   cbor_status cs = cbor_ok;
 
@@ -623,7 +623,7 @@ static uint32_t decode_float16(uint16_t h)
   }
 }
 
-static cbor_status cbdec_float(cbdec_ctx *ctx, uint8_t s_type)
+static cbor_status cbdec_float(cbdec_ctx_t *ctx, uint8_t s_type)
 {
   cbor_status cs = cbor_ok;
 
@@ -646,7 +646,7 @@ static cbor_status cbdec_float(cbdec_ctx *ctx, uint8_t s_type)
 
 #ifdef CBOR_ENABLE_FLOAT64_SUPPORT
 
-static cbor_status cbdec_float64(cbdec_ctx *ctx)
+static cbor_status cbdec_float64(cbdec_ctx_t *ctx)
 {
   cbor_status cs = cbor_ok;
 
@@ -658,7 +658,7 @@ static cbor_status cbdec_float64(cbdec_ctx *ctx)
 
 #endif // CBOR_ENABLE_FLOAT64_SUPPORT
 
-cbor_status cbdec_step(cbdec_ctx *ctx)
+cbor_status cbdec_step(cbdec_ctx_t *ctx)
 {
   cbor_status cs = cbor_ok;
   uint8_t s_type;
@@ -727,7 +727,7 @@ cbor_status cbdec_step(cbdec_ctx *ctx)
   return cbor_efmt;
 }
 
-cbor_status cbdec_sread(cbdec_ctx *ctx, void *data, cbor_uint sz)
+cbor_status cbdec_sread(cbdec_ctx_t *ctx, void *data, cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
   cbor_uint n;

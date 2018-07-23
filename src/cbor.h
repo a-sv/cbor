@@ -188,18 +188,20 @@ typedef enum
 
 #ifdef CBOR_ENABLE_ENCODER_SUPPORT
 
-typedef struct
+#define CBOR_ENCODER_MIN_BUFFER_SIZE 9
+
+typedef struct cbenc_ctx
 {
   // public:
   cbor_status (*write)(const void *data, cbor_uint sz, void *usrdata); // data write callback
   uint8_t *buf; // pointer to data buffer
-  cbor_uint bufsz; // data buffer size (must not be less then 9 bytes!)
+  cbor_uint bufsz; // data buffer size (must not be less then: CBOR_ENCODER_MIN_BUFFER_SIZE)
   void *usrdata; // user data pointer
 
   // private:
   uint8_t *end;
   uint8_t *mem;
-} cbenc_ctx;
+} cbenc_ctx_t;
 
 /**
  * Initializer for encoder context
@@ -217,7 +219,7 @@ typedef struct
  * @param  ctx - encoder context
  * @return status code
 */
-cbor_status cbenc_begin(cbenc_ctx *ctx);
+cbor_status cbenc_begin(cbenc_ctx_t *ctx);
 
 /**
  * Finish encoding
@@ -225,7 +227,7 @@ cbor_status cbenc_begin(cbenc_ctx *ctx);
  * @param  ctx - encoder context
  * @return status code
 */
-cbor_status cbenc_end(cbenc_ctx *ctx);
+cbor_status cbenc_end(cbenc_ctx_t *ctx);
 
 /**
  * Encode signed and unsigned int value
@@ -234,8 +236,8 @@ cbor_status cbenc_end(cbenc_ctx *ctx);
  * @param  val - value to encode
  * @return status code
  */
-cbor_status cbenc_uint(cbenc_ctx *ctx, cbor_uint val);
-cbor_status cbenc_int(cbenc_ctx *ctx, cbor_int val);
+cbor_status cbenc_uint(cbenc_ctx_t *ctx, cbor_uint val);
+cbor_status cbenc_int(cbenc_ctx_t *ctx, cbor_int val);
 
 #ifdef CBOR_ENABLE_FLOAT32_SUPPORT
 
@@ -246,8 +248,8 @@ cbor_status cbenc_int(cbenc_ctx *ctx, cbor_int val);
  * @param  val - value to encode
  * @return status code
  */
-cbor_status cbenc_float16(cbenc_ctx *ctx, float val);
-cbor_status cbenc_float32(cbenc_ctx *ctx, float val);
+cbor_status cbenc_float16(cbenc_ctx_t *ctx, float val);
+cbor_status cbenc_float32(cbenc_ctx_t *ctx, float val);
 
 #endif
 
@@ -260,7 +262,7 @@ cbor_status cbenc_float32(cbenc_ctx *ctx, float val);
  * @param  val - value to encode
  * @return status code
  */
-cbor_status cbenc_float64(cbenc_ctx *ctx, double val);
+cbor_status cbenc_float64(cbenc_ctx_t *ctx, double val);
 
 #endif
 
@@ -271,7 +273,7 @@ cbor_status cbenc_float64(cbenc_ctx *ctx, double val);
  * @param  val - value to encode
  * @return status code
  */
-cbor_status cbenc_simple(cbenc_ctx *ctx, cbor_simple val);
+cbor_status cbenc_simple(cbenc_ctx_t *ctx, cbor_simple val);
 
 /**
  * Begin encode byte string with variable length
@@ -282,7 +284,7 @@ cbor_status cbenc_simple(cbenc_ctx *ctx, cbor_simple val);
  * @brief  After cbenc_bytestr_begin, call cbenc_bytestr to actually write data as many times as
  *         necessary. At the end, call cbenc_break to complete.
 */
-cbor_status cbenc_bytestr_begin(cbenc_ctx *ctx);
+cbor_status cbenc_bytestr_begin(cbenc_ctx_t *ctx);
 
 /**
  * Encode byte string with fixed length
@@ -294,7 +296,7 @@ cbor_status cbenc_bytestr_begin(cbenc_ctx *ctx);
  *
  * @brief  The data can contain any binary format.
 */
-cbor_status cbenc_bytestr(cbenc_ctx *ctx, const void *data, cbor_uint sz);
+cbor_status cbenc_bytestr(cbenc_ctx_t *ctx, const void *data, cbor_uint sz);
 
 /**
  * Begin encode text string with variable length
@@ -305,7 +307,7 @@ cbor_status cbenc_bytestr(cbenc_ctx *ctx, const void *data, cbor_uint sz);
  * @brief  After cbenc_textstr_begin, call cbenc_textstr to actually write data as many times as
  *         necessary. At the end, call cbenc_break to complete.
 */
-cbor_status cbenc_textstr_begin(cbenc_ctx *ctx);
+cbor_status cbenc_textstr_begin(cbenc_ctx_t *ctx);
 
 /**
  * Encode text string with fixed length
@@ -317,7 +319,7 @@ cbor_status cbenc_textstr_begin(cbenc_ctx *ctx);
  *
  * @brief  The data must be a valid utf-8 string.
 */
-cbor_status cbenc_textstr(cbenc_ctx *ctx, const char *data, cbor_uint sz);
+cbor_status cbenc_textstr(cbenc_ctx_t *ctx, const char *data, cbor_uint sz);
 
 /**
  * Encode null terminated c-string
@@ -331,7 +333,7 @@ cbor_status cbenc_textstr(cbenc_ctx *ctx, const char *data, cbor_uint sz);
  *
  *         The data must be a valid utf-8 string.
 */
-cbor_status cbenc_cstring(cbenc_ctx *ctx, const char *data);
+cbor_status cbenc_cstring(cbenc_ctx_t *ctx, const char *data);
 
 /**
  * Begin encode byte string with fixed length
@@ -345,7 +347,7 @@ cbor_status cbenc_cstring(cbenc_ctx *ctx, const char *data);
  *
  *         The data can contain any binary format.
 */
-cbor_status cbenc_bytestr_begin_sz(cbenc_ctx *ctx, cbor_uint sz);
+cbor_status cbenc_bytestr_begin_sz(cbenc_ctx_t *ctx, cbor_uint sz);
 
 /**
  * Begin encode text string with fixed length
@@ -359,7 +361,7 @@ cbor_status cbenc_bytestr_begin_sz(cbenc_ctx *ctx, cbor_uint sz);
  *
  *         The data must be a valid utf-8 string.
 */
-cbor_status cbenc_textstr_begin_sz(cbenc_ctx *ctx, cbor_uint sz);
+cbor_status cbenc_textstr_begin_sz(cbenc_ctx_t *ctx, cbor_uint sz);
 
 /**
  * Write byte and text string's data
@@ -371,7 +373,7 @@ cbor_status cbenc_textstr_begin_sz(cbenc_ctx *ctx, cbor_uint sz);
  *
  * @brief  This function must be used only with cbenc_bytestr_begin_sz or cbenc_textstr_begin_sz.
 */
-cbor_status cbenc_swrite(cbenc_ctx *ctx, const void *data, cbor_uint sz);
+cbor_status cbenc_swrite(cbenc_ctx_t *ctx, const void *data, cbor_uint sz);
 
 /**
  * Begin encode array with variable length
@@ -382,7 +384,7 @@ cbor_status cbenc_swrite(cbenc_ctx *ctx, const void *data, cbor_uint sz);
  * @brief  After cbenc_array_begin, call other encode functions to actually write data as many
  *         times as necessary. At the end, call cbenc_break to complete.
 */
-cbor_status cbenc_array_begin(cbenc_ctx *ctx);
+cbor_status cbenc_array_begin(cbenc_ctx_t *ctx);
 
 /**
  * Begin encode array with fixed length
@@ -393,7 +395,7 @@ cbor_status cbenc_array_begin(cbenc_ctx *ctx);
  *
  * @brief  After cbenc_array, call other encode functions to actually write data.
 */
-cbor_status cbenc_array(cbenc_ctx *ctx, cbor_uint sz);
+cbor_status cbenc_array(cbenc_ctx_t *ctx, cbor_uint sz);
 
 /**
  * Begin encode map (key-value container) with variable length
@@ -404,7 +406,7 @@ cbor_status cbenc_array(cbenc_ctx *ctx, cbor_uint sz);
  * @brief  After cbenc_map_begin, call other encode functions to actually write data as many
  *         times as necessary. At the end, call cbenc_break to complete.
 */
-cbor_status cbenc_map_begin(cbenc_ctx *ctx);
+cbor_status cbenc_map_begin(cbenc_ctx_t *ctx);
 
 /**
  * Begin encode map (key-value container) with fixed length
@@ -415,7 +417,7 @@ cbor_status cbenc_map_begin(cbenc_ctx *ctx);
  *
  * @brief  After cbenc_map, call other encode functions to actually write data.
 */
-cbor_status cbenc_map(cbenc_ctx *ctx, cbor_uint sz);
+cbor_status cbenc_map(cbenc_ctx_t *ctx, cbor_uint sz);
 
 /**
  * Encode break code for containers with variable length.
@@ -423,7 +425,7 @@ cbor_status cbenc_map(cbenc_ctx *ctx, cbor_uint sz);
  * @param  ctx - encoder context
  * @return status code
 */
-cbor_status cbenc_break(cbenc_ctx *ctx);
+cbor_status cbenc_break(cbenc_ctx_t *ctx);
 
 /**
  * Encode CBOR tag
@@ -432,13 +434,13 @@ cbor_status cbenc_break(cbenc_ctx *ctx);
  * @param  tag - CBOR tag value
  * @return status code
 */
-cbor_status cbenc_tag(cbenc_ctx *ctx, cbor_uint tag);
+cbor_status cbenc_tag(cbenc_ctx_t *ctx, cbor_uint tag);
 
 #endif // CBOR_ENABLE_ENCODER_SUPPORT
 
 #ifdef CBOR_ENABLE_DECODER_SUPPORT
 
-typedef struct
+typedef struct cbdec_ctx
 {
   // public:
   cbor_status (*read)(void *data, cbor_uint sz, void *usrdata); // data read callback
@@ -462,7 +464,7 @@ typedef struct
 
   // private:
   uint8_t buf[8];
-} cbdec_ctx;
+} cbdec_ctx_t;
 
 /**
  * Initializer for decoder context
@@ -479,7 +481,7 @@ typedef struct
  * @param  ctx - decoder context
  * @return status code
 */
-cbor_status cbdec_step(cbdec_ctx *ctx);
+cbor_status cbdec_step(cbdec_ctx_t *ctx);
 
 /**
  * Read data for byte or text string
@@ -488,7 +490,7 @@ cbor_status cbdec_step(cbdec_ctx *ctx);
  * @param  sz  - size to read
  * @return status code
 */
-cbor_status cbdec_sread(cbdec_ctx *ctx, void *data, cbor_uint sz);
+cbor_status cbdec_sread(cbdec_ctx_t *ctx, void *data, cbor_uint sz);
 
 #endif // CBOR_ENABLE_DECODER_SUPPORT
 
