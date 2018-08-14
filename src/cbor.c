@@ -118,7 +118,8 @@ static inline cbor_status cbenc_header(cbenc_ctx_t *ctx, uint8_t type, cbor_uint
   return cs;
 }
 
-static inline cbor_status cbenc_bytes(cbenc_ctx_t *ctx, uint8_t type, const void *data, cbor_uint sz)
+static inline cbor_status cbenc_bytes(cbenc_ctx_t *ctx, uint8_t type, const void *data,
+                                      cbor_uint sz)
 {
   cbor_status cs = cbor_ok;
 
